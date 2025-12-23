@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Theology & Ink: An Interactive Study</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Typography & Base */
+        body {
+            font-family: 'Lato', sans-serif;
+            background-color: #f5f5f4; /* stone-100 */
+            color: #292524; /* stone-800 */
+            -webkit-tap-highlight-color: transparent;
+        }
+        h1, h2, h3, h4, .serif {
+            font-family: 'Crimson Text', serif;
+        }
+        
+        /* Chart Container Styling - Responsive & robust */
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Limits width on large screens */
+            margin-left: auto;
+            margin-right: auto;
+            /* Mobile First Height */
+            height: 250px; 
+            max-height: 400px;
+        }
+        @media (min-width: 640px) {
+            .chart-container {
+                height: 350px;
+            }
+        }
+
+        /* Interactive Highlights - Larger touch target visual */
+        .interactive-text {
+            border-bottom: 2px dashed #d97706; /* amber-600 */
+            cursor: pointer;
+            transition: background-color 0.2s;
+            padding-bottom: 2px; /* Slight padding for visual separation */
+        }
+        .interactive-text:active, .interactive-text:hover {
+            background-color: #fef3c7; /* amber-100 */
+            border-bottom-style: solid;
+        }
+
+        /* Transitions */
+        .fade-in {
+            animation: fadeIn 0.4s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Hide Scrollbar for Nav but allow functionality */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+    <!-- Chosen Palette: "Seminary Library" - Warm Neutrals (Stone), Deep Charcoal Text, Amber/Gold Accents. -->
+    
+    <!-- Application Structure Plan: 
+         Optimized for Mobile usage.
+         1. Sticky Header: Simplified for small screens.
+         2. Scrollable Navigation: Horizontal scroll with "pills" for tabs.
+         3. Responsive Content:
+            - Exegesis: Text scales down, buttons are thumb-friendly.
+            - Theology: Charts stack vertically on mobile.
+            - Decision Tool: Full-width touch targets for radio buttons.
+    -->
+</head>
+<body class="antialiased min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-stone-200 shadow-sm sticky top-0 z-50">
+        <div class="max-w-5xl mx-auto px-4 py-3 md:py-4">
+            <div class="flex flex-col md:flex-row justify-between items-center md:items-baseline">
+                <div class="text-center md:text-left mb-3 md:mb-0 w-full md:w-auto">
+                    <h1 class="text-xl md:text-3xl font-bold text-stone-800 serif leading-tight">Theology & Ink</h1>
+                    <p class="text-xs md:text-sm text-stone-500 italic">A Biblical Analysis of Tattoos</p>
+                </div>
+                
+                <!-- Scrollable Nav for Mobile -->
+                <nav class="w-full md:w-auto overflow-hidden">
+                    <ul class="flex space-x-2 bg-stone-100 p-1 rounded-lg text-sm overflow-x-auto no-scrollbar touch-pan-x whitespace-nowrap mask-image-linear">
+                        <li><button onclick="router('exegesis')" class="nav-btn px-3 py-2 md:px-4 rounded-md transition hover:bg-white text-stone-600 font-medium text-xs md:text-sm" id="nav-exegesis">Exegesis</button></li>
+                        <li><button onclick="router('theology')" class="nav-btn px-3 py-2 md:px-4 rounded-md transition hover:bg-white text-stone-600 font-medium text-xs md:text-sm" id="nav-theology">Theology</button></li>
+                        <li><button onclick="router('principles')" class="nav-btn px-3 py-2 md:px-4 rounded-md transition hover:bg-white text-stone-600 font-medium text-xs md:text-sm" id="nav-principles">Principles</button></li>
+                        <li><button onclick="router('perspectives')" class="nav-btn px-3 py-2 md:px-4 rounded-md transition hover:bg-white text-stone-600 font-medium text-xs md:text-sm" id="nav-perspectives">Perspectives</button></li>
+                        <li><button onclick="router('decision')" class="nav-btn px-3 py-2 md:px-4 rounded-md transition bg-amber-600 text-white shadow font-bold text-xs md:text-sm" id="nav-decision">Decision Tool</button></li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main id="app" class="flex-grow max-w-4xl mx-auto px-4 py-6 w-full overflow-hidden">
+        <!-- Dynamic Content Injected Here -->
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-stone-800 text-stone-400 py-8 mt-auto border-t border-stone-700">
+        <div class="max-w-5xl mx-auto px-4 text-center">
+            <p class="serif italic text-base md:text-lg mb-2">"So, whether you eat or drink, or whatever you do, do all to the glory of God."</p>
+            <p class="text-xs uppercase tracking-widest text-stone-500">1 Corinthians 10:31</p>
+            <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+        </div>
+    </footer>
+
+    <!-- Templates & Scripts -->
+    <script>
+        // --- Data & Content ---
+        const reportData = {
+            exegesis: {
+                title: "1. Biblical Exegesis: Leviticus 19:28",
+                intro: "The primary text used in this debate is Leviticus 19:28. To understand it, we must strip away modern cultural lenses and look at the Ancient Near East context.",
+                scripture: "“You shall not make any <span class='interactive-text' onclick='showContext(\"cuts\")'>cuts on your body for the dead</span> or <span class='interactive-text' onclick='showContext(\"tattoo\")'>tattoo yourselves</span>: I am the LORD.”",
+                contexts: {
+                    cuts: {
+                        title: "Cuts for the Dead",
+                        content: "<strong>Context:</strong> Ritual self-mutilation (shaving heads, gashing skin) practiced by Canaanites to mourn the dead or appease underworld deities.<br><br><strong>Meaning:</strong> A prohibition against pagan death cults."
+                    },
+                    tattoo: {
+                        title: "Qa'aqa (Tattoo/Incision)",
+                        content: "<strong>Context:</strong> The Hebrew word <em>qa'aqa</em> implies branding. In the ancient world, this marked a person as a slave or a devotee belonging to a pagan god.<br><br><strong>Meaning:</strong> It was a command about <em>ownership</em>."
+                    }
+                }
+            },
+            principles: [
+                {
+                    icon: "🏛️",
+                    title: "Body as Temple",
+                    ref: "1 Cor 6:19-20",
+                    desc: "<strong>Against:</strong> Tattoos are graffiti on God's masterpiece.<br><strong>For:</strong> Temples are decorated. It is about stewardship."
+                },
+                {
+                    icon: "⚖️",
+                    title: "Christian Liberty",
+                    ref: "Romans 14",
+                    desc: "<strong>Principle:</strong> In 'disputable matters', conscience rules. <br><strong>Caveat:</strong> 'Whatever does not proceed from faith is sin.'"
+                },
+                {
+                    icon: "🛑",
+                    title: "Stumbling Block",
+                    ref: "1 Cor 8:9",
+                    desc: "<strong>Principle:</strong> Liberty must not destroy another's faith.<br><strong>Application:</strong> Avoid if it signifies evil in your specific culture."
+                }
+            ],
+            quiz: [
+                { q: "Why do you want this tattoo?", type: "motive", options: ["Rebellion / Toughness", "Peer Pressure", "Art / Memorial / Faith"] },
+                { q: "Does the image glorify God?", type: "content", options: ["No (Dark/Sexual/Violent)", "Neutral", "Yes (Edifying/Truth)"] },
+                { q: "How is your conscience?", type: "conscience", options: ["Doubting / Hidden", "Unsure", "Clear / Peaceful"] },
+                { q: "Will it affect your witness?", type: "consequence", options: ["Likely Negative", "Depends", "Neutral / Positive"] },
+                { q: "Thinking 30 years ahead...", type: "permanence", options: ["I might regret it", "Maybe", "I accept the change"] }
+            ]
+        };
+
+        // --- State Management ---
+        let currentView = 'exegesis';
+        let charts = {};
+
+        // --- Router ---
+        function router(view) {
+            currentView = view;
+            updateNav();
+            const app = document.getElementById('app');
+            app.innerHTML = ''; // Clear content
+            app.classList.remove('fade-in');
+            
+            // Scroll to top of content area on mobile when switching
+            if(window.innerWidth < 768) {
+                window.scrollTo({top: 0, behavior: 'smooth'});
+            }
+
+            // Small timeout to allow transition reset
+            setTimeout(() => {
+                app.classList.add('fade-in');
+                switch(view) {
+                    case 'exegesis': renderExegesis(); break;
+                    case 'theology': renderTheology(); break;
+                    case 'principles': renderPrinciples(); break;
+                    case 'perspectives': renderPerspectives(); break;
+                    case 'decision': renderDecision(); break;
+                }
+            }, 50);
+        }
+
+        function updateNav() {
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                const isActive = btn.id === `nav-${currentView}`;
+                const baseClasses = "nav-btn px-3 py-2 md:px-4 rounded-md transition text-xs md:text-sm font-medium whitespace-nowrap";
+                
+                if (btn.id === 'nav-decision') {
+                    btn.className = `${baseClasses} font-bold shadow ${isActive ? 'bg-amber-800 text-white ring-2 ring-amber-300' : 'bg-amber-600 text-white hover:bg-amber-700'}`;
+                } else {
+                    btn.className = `${baseClasses} ${isActive ? 'bg-white shadow-sm text-stone-900 ring-1 ring-stone-200' : 'text-stone-600 hover:bg-white hover:shadow-sm'}`;
+                }
+            });
+        }
+
+        // --- Render Functions ---
+
+        function renderExegesis() {
+            const data = reportData.exegesis;
+            const html = `
+                <section class="space-y-6">
+                    <div class="border-l-4 border-stone-800 pl-4 md:pl-6 py-1 md:py-2">
+                        <h2 class="text-2xl md:text-3xl font-bold text-stone-800 serif mb-2">${data.title}</h2>
+                        <p class="text-sm md:text-base text-stone-600 leading-relaxed">${data.intro}</p>
+                    </div>
+
+                    <div class="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-stone-200 text-center my-4 md:my-8">
+                        <p class="text-xl md:text-3xl serif text-stone-800 leading-loose">
+                            ${data.scripture}
+                        </p>
+                        <p class="text-xs text-stone-400 mt-4 uppercase tracking-widest font-bold">Tap highlighted text to analyze</p>
+                    </div>
+
+                    <div id="exegesis-context" class="hidden bg-amber-50 border border-amber-200 p-4 md:p-6 rounded-lg text-stone-800 transition-all animate-fade-in shadow-inner">
+                        <!-- Dynamic Context Loads Here -->
+                    </div>
+                </section>
+            `;
+            document.getElementById('app').innerHTML = html;
+        }
+
+        function showContext(key) {
+            const ctx = reportData.exegesis.contexts[key];
+            const display = document.getElementById('exegesis-context');
+            display.innerHTML = `
+                <h3 class="text-lg md:text-xl font-bold text-amber-800 mb-2 serif flex items-center">
+                    <span class="text-2xl mr-2">💡</span> ${ctx.title}
+                </h3>
+                <p class="text-sm md:text-base text-stone-700 leading-relaxed">${ctx.content}</p>
+                <button onclick="this.parentElement.classList.add('hidden')" class="mt-4 text-xs text-amber-600 uppercase font-bold tracking-wider md:hidden">Close</button>
+            `;
+            display.classList.remove('hidden');
+            // Scroll to context on mobile if it's off screen
+            if(window.innerWidth < 768) {
+                display.scrollIntoView({behavior: 'smooth', block: 'nearest'});
+            }
+        }
+
+        function renderTheology() {
+            const html = `
+                <section class="space-y-6">
+                    <div class="border-l-4 border-stone-800 pl-4 md:pl-6 py-1 md:py-2">
+                        <h2 class="text-2xl md:text-3xl font-bold text-stone-800 serif mb-2">2. Theological Framework</h2>
+                        <p class="text-sm md:text-base text-stone-600 leading-relaxed">
+                            How do we apply ancient law? Theologians categorize Mosaic Law into three types. 
+                            While Moral Law is eternal, Ceremonial Law is considered "fulfilled" in Christ.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-center mt-4 md:mt-8">
+                        <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-stone-200">
+                            <h3 class="text-center font-bold text-stone-500 mb-4 uppercase tracking-widest text-xs">Categories of Biblical Law</h3>
+                            <div class="chart-container">
+                                <canvas id="theologyChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="space-y-3 md:space-y-4">
+                            <div class="p-3 md:p-4 bg-stone-100 rounded border-l-4 border-stone-500">
+                                <h4 class="font-bold text-stone-800 text-sm md:text-base">Moral Law</h4>
+                                <p class="text-xs md:text-sm text-stone-600">Reflects God's character (e.g., 10 Commandments). <br><strong>Status:</strong> Binding.</p>
+                            </div>
+                            <div class="p-3 md:p-4 bg-amber-50 rounded border-l-4 border-amber-500">
+                                <h4 class="font-bold text-amber-900 text-sm md:text-base">Ceremonial Law</h4>
+                                <p class="text-xs md:text-sm text-amber-800">Rituals, diet, and distinction (e.g., Tattoos, Lev 19:28). <br><strong>Status:</strong> Fulfilled/Abrogated.</p>
+                            </div>
+                            <div class="p-3 md:p-4 bg-stone-100 rounded border-l-4 border-stone-300">
+                                <h4 class="font-bold text-stone-600 text-sm md:text-base">Civil Law</h4>
+                                <p class="text-xs md:text-sm text-stone-500">Governed Israel as a nation. <br><strong>Status:</strong> Principles apply, rules do not.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            `;
+            document.getElementById('app').innerHTML = html;
+
+            const ctx = document.getElementById('theologyChart').getContext('2d');
+            charts.theology = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Moral Law', 'Ceremonial (Lev 19:28)', 'Civil Law'],
+                    datasets: [{
+                        data: [30, 40, 30],
+                        backgroundColor: ['#57534e', '#d97706', '#d6d3d1'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15, font: {size: 11} } },
+                        tooltip: {
+                            callbacks: { label: function(context) { return ' ' + context.label; } }
+                        }
+                    }
+                }
+            });
+        }
+
+        function renderPrinciples() {
+            const cards = reportData.principles.map(p => `
+                <div class="bg-white p-5 rounded-xl shadow-sm border border-stone-200 hover:shadow-md transition">
+                    <div class="flex items-center mb-3">
+                        <div class="text-3xl mr-3">${p.icon}</div>
+                        <div>
+                            <h3 class="text-lg font-bold text-stone-800 serif leading-none">${p.title}</h3>
+                            <p class="text-xs font-bold text-amber-600 uppercase mt-1">${p.ref}</p>
+                        </div>
+                    </div>
+                    <p class="text-sm text-stone-600 leading-relaxed border-t border-stone-100 pt-3">${p.desc}</p>
+                </div>
+            `).join('');
+
+            const html = `
+                <section class="space-y-6">
+                    <div class="border-l-4 border-stone-800 pl-4 md:pl-6 py-1 md:py-2">
+                        <h2 class="text-2xl md:text-3xl font-bold text-stone-800 serif mb-2">3. New Testament Principles</h2>
+                        <p class="text-sm md:text-base text-stone-600 leading-relaxed">
+                            The New Testament does not explicitly ban tattoos. Instead, it gives us ethical principles to govern "disputable matters."
+                        </p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mt-4 md:mt-6">
+                        ${cards}
+                    </div>
+                </section>
+            `;
+            document.getElementById('app').innerHTML = html;
+        }
+
+        function renderPerspectives() {
+             const html = `
+                <section class="space-y-6">
+                    <div class="border-l-4 border-stone-800 pl-4 md:pl-6 py-1 md:py-2">
+                        <h2 class="text-2xl md:text-3xl font-bold text-stone-800 serif mb-2">4. Modern Perspectives</h2>
+                        <p class="text-sm md:text-base text-stone-600 leading-relaxed">
+                            Evangelical leaders are divided. The "Caution" camp emphasizes stewardship, while the "Liberty" camp emphasizes mission.
+                        </p>
+                    </div>
+
+                    <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-stone-200 mt-4 md:mt-8">
+                        <div class="chart-container">
+                            <canvas id="perspectivesChart"></canvas>
+                        </div>
+                        <div class="mt-4 md:mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs md:text-sm text-center">
+                            <div class="p-2 bg-stone-50 rounded text-stone-600 border border-stone-100"><span class="inline-block w-2 h-2 rounded-full bg-stone-500 mr-2"></span><strong>Caution Camp:</strong> Focus on Modesty & Tradition.</div>
+                            <div class="p-2 bg-amber-50 rounded text-amber-800 border border-amber-100"><span class="inline-block w-2 h-2 rounded-full bg-amber-500 mr-2"></span><strong>Liberty Camp:</strong> Focus on Mission & Relevance.</div>
+                        </div>
+                    </div>
+                </section>
+            `;
+            document.getElementById('app').innerHTML = html;
+
+            const ctx = document.getElementById('perspectivesChart').getContext('2d');
+            charts.perspectives = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Stewardship', 'Cultural Relevance', 'Christian Liberty', 'Tradition', 'Missional Intent'],
+                    datasets: [
+                        {
+                            label: 'Caution View',
+                            data: [90, 20, 40, 95, 30],
+                            backgroundColor: 'rgba(87, 83, 78, 0.2)', // stone-600
+                            borderColor: '#57534e',
+                            pointBackgroundColor: '#57534e',
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Liberty View',
+                            data: [50, 90, 95, 20, 90],
+                            backgroundColor: 'rgba(217, 119, 6, 0.2)', // amber-600
+                            borderColor: '#d97706',
+                            pointBackgroundColor: '#d97706',
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { color: '#e7e5e4' },
+                            grid: { color: '#e7e5e4' },
+                            pointLabels: {
+                                font: { size: 10, family: 'Lato' }, // Smaller font for mobile
+                                color: '#44403c'
+                            },
+                            ticks: { display: false } // Hide chart ticks for cleaner mobile view
+                        }
+                    },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10, font: {size: 11} } }
+                    }
+                }
+            });
+        }
+
+        function renderDecision() {
+            let html = `
+                <section class="space-y-6">
+                    <div class="border-l-4 border-amber-600 pl-4 md:pl-6 py-1 md:py-2">
+                        <h2 class="text-2xl md:text-3xl font-bold text-stone-800 serif mb-2">5. Decision Framework</h2>
+                        <p class="text-sm md:text-base text-stone-600 leading-relaxed">
+                            The decision often comes down to the heart. Use this interactive framework to examine your motives.
+                        </p>
+                    </div>
+                    <div class="bg-white rounded-xl shadow-lg border border-stone-200 overflow-hidden max-w-2xl mx-auto mt-4 md:mt-8">
+                        <div class="bg-stone-800 p-3 md:p-4 text-white font-bold text-center uppercase tracking-widest text-sm md:text-base">Examination Tool</div>
+                        <div class="p-4 md:p-8" id="quiz-container">
+            `;
+
+            reportData.quiz.forEach((q, idx) => {
+                html += `
+                    <div class="mb-6 pb-6 border-b border-stone-100 last:border-0 last:pb-0">
+                        <p class="font-bold text-base md:text-lg text-stone-800 mb-3 serif"><span class="text-amber-600 mr-2">${idx + 1}.</span> ${q.q}</p>
+                        <div class="flex flex-col space-y-2">
+                            ${q.options.map((opt, optIdx) => `
+                                <label class="flex items-center p-3 rounded-lg bg-stone-50 active:bg-amber-50 cursor-pointer border border-transparent hover:border-stone-200 transition touch-manipulation">
+                                    <input type="radio" name="q${idx}" value="${optIdx}" class="form-radio text-amber-600 focus:ring-amber-500 h-5 w-5 flex-shrink-0">
+                                    <span class="ml-3 text-sm md:text-base text-stone-700">${opt}</span>
+                                </label>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `
+                        <button onclick="calculateResult()" class="w-full bg-amber-600 text-white font-bold py-3 md:py-4 rounded shadow hover:bg-amber-700 transition transform active:scale-95 text-sm md:text-base">Analyze Responses</button>
+                    </div>
+                    <div id="quiz-result" class="hidden p-6 md:p-8 bg-amber-50 border-t border-amber-100 text-center animate-fade-in"></div>
+                </div>
+            </section>`;
+            
+            document.getElementById('app').innerHTML = html;
+        }
+
+        function calculateResult() {
+            let score = 0;
+            let answered = 0;
+            
+            reportData.quiz.forEach((_, idx) => {
+                const radios = document.getElementsByName(`q${idx}`);
+                for(let r of radios) {
+                    if(r.checked) {
+                        score += parseInt(r.value);
+                        answered++;
+                    }
+                }
+            });
+
+            if(answered < 5) {
+                // Use standard alert but maybe custom modal is better? 
+                // For simplicity/robustness in single file, alert is okay, 
+                // but let's just show a warning text instead.
+                const btn = document.querySelector('#quiz-container button');
+                const originalText = btn.innerText;
+                btn.innerText = "Please answer all questions first!";
+                btn.classList.add('bg-red-600');
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.classList.remove('bg-red-600');
+                }, 2000);
+                return;
+            }
+
+            const resultDiv = document.getElementById('quiz-result');
+            let resultTitle = "";
+            let resultText = "";
+            let resultColor = "";
+
+            if (score <= 3) {
+                resultTitle = "Pause & Pray";
+                resultText = "Your answers suggest significant red flags regarding motive, content, or conscience. It is wise to wait.";
+                resultColor = "text-red-700";
+            } else if (score <= 7) {
+                resultTitle = "Proceed with Caution";
+                resultText = "You have some clarity, but there may be lingering doubts. Seek wise counsel from a pastor or mentor.";
+                resultColor = "text-amber-700";
+            } else {
+                resultTitle = "Christian Liberty";
+                resultText = "Your conscience seems clear, and your motives appear to be for God's glory. Remember to consider others.";
+                resultColor = "text-green-700";
+            }
+
+            resultDiv.innerHTML = `
+                <h3 class="text-xl md:text-2xl font-bold ${resultColor} mb-2 serif">${resultTitle}</h3>
+                <p class="text-sm md:text-base text-stone-700 leading-relaxed">${resultText}</p>
+                <button onclick="router('exegesis')" class="mt-4 text-xs md:text-sm text-stone-500 underline hover:text-stone-800 p-2">Return to Start</button>
+            `;
+            resultDiv.classList.remove('hidden');
+            resultDiv.scrollIntoView({behavior: 'smooth'});
+        }
+
+        // Initialize
+        router('exegesis');
+
+    </script>
+</body>
+</html>
