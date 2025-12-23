@@ -1,516 +1,593 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Theology & Ink: An Interactive Study</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
-    <style>
-        /* Typography & Base */
-        body {
-            font-family: 'Lato', sans-serif;
-            background-color: #f5f5f4; /* stone-100 */
-            color: #292524; /* stone-800 */
-            -webkit-tap-highlight-color: transparent;
-        }
-        h1, h2, h3, h4, .serif {
-            font-family: 'Crimson Text', serif;
-        }
-        
-        /* Chart Container Styling - Responsive & robust */
-        .chart-container {
-            position: relative;
-            width: 100%;
-            max-width: 600px; /* Limits width on large screens */
-            margin-left: auto;
-            margin-right: auto;
-            /* Mobile First Height */
-            height: 250px; 
-            max-height: 400px;
-        }
-        @media (min-width: 640px) {
-            .chart-container {
-                height: 350px;
-            }
-        }
+import React, { useState, useEffect } from 'react';
+import { 
+  BookOpen, 
+  History, 
+  Layers, 
+  Users, 
+  CheckCircle, 
+  Download, 
+  ArrowRight, 
+  Menu, 
+  X, 
+  PenTool, 
+  Heart, 
+  ShieldCheck, 
+  MapPin,
+  ExternalLink,
+  ChevronRight
+} from 'lucide-react';
 
-        /* Interactive Highlights - Larger touch target visual */
-        .interactive-text {
-            border-bottom: 2px dashed #d97706; /* amber-600 */
-            cursor: pointer;
-            transition: background-color 0.2s;
-            padding-bottom: 2px; /* Slight padding for visual separation */
-        }
-        .interactive-text:active, .interactive-text:hover {
-            background-color: #fef3c7; /* amber-100 */
-            border-bottom-style: solid;
-        }
+const App = () => {
+  const [activeTab, setActiveTab] = useState('home');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showFullText, setShowFullText] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
 
-        /* Transitions */
-        .fade-in {
-            animation: fadeIn 0.4s ease-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+  // Handle scroll effect for navbar
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
-        /* Hide Scrollbar for Nav but allow functionality */
-        .no-scrollbar::-webkit-scrollbar {
-            display: none;
-        }
-        .no-scrollbar {
-            -ms-overflow-style: none;
-            scrollbar-width: none;
-        }
-    </style>
-    <!-- Chosen Palette: "Seminary Library" - Warm Neutrals (Stone), Deep Charcoal Text, Amber/Gold Accents. -->
+  const sections = [
+    { id: 'home', label: 'Home', icon: <BookOpen className="w-4 h-4" /> },
+    { id: 'history', label: 'Historical Context', icon: <History className="w-4 h-4" /> },
+    { id: 'theology', label: 'Theological Framework', icon: <Layers className="w-4 h-4" /> },
+    { id: 'modern', label: 'Modern Perspectives', icon: <Users className="w-4 h-4" /> },
+    { id: 'guide', label: 'Decision Guide', icon: <CheckCircle className="w-4 h-4" /> },
+  ];
+
+  const handleDownload = () => {
+    // Constructing a more detailed preview for the download
+    const fullText = `Marked by Grace: A Comprehensive Theological Inquiry into Evangelical Perspectives on Tattoos
     
-    <!-- Application Structure Plan: 
-         Optimized for Mobile usage.
-         1. Sticky Header: Simplified for small screens.
-         2. Scrollable Navigation: Horizontal scroll with "pills" for tabs.
-         3. Responsive Content:
-            - Exegesis: Text scales down, buttons are thumb-friendly.
-            - Theology: Charts stack vertically on mobile.
-            - Decision Tool: Full-width touch targets for radio buttons.
-    -->
-</head>
-<body class="antialiased min-h-screen flex flex-col">
+    1. Introduction: The Shift from Taboo to Testament
+    In the span of a single generation, the visual landscape of the Evangelical church has undergone a radical transformation...
+    
+    2. The Levitical Prohibition (Leviticus 19:28)
+    The epicenter of the debate lies in the Holiness Code...
+    
+    3. Theological Framework: Continuity and Discontinuity
+    Traditional division of the Law into Ceremonial, Civil, and Moral...
+    
+    4. New Testament Principles: Soma and Temple
+    "Or do you not know that your body is a temple of the Holy Spirit..."
+    
+    5. Modern Perspectives: From John MacArthur to Levi Lusko...
+    
+    6. Decision-Making Framework: Motivation, Content, Conscience, Missiology.`;
 
-    <!-- Header -->
-    <header class="bg-white border-b border-stone-200 shadow-sm sticky top-0 z-50">
-        <div class="max-w-5xl mx-auto px-4 py-3 md:py-4">
-            <div class="flex flex-col md:flex-row justify-between items-center md:items-baseline">
-                <div class="text-center md:text-left mb-3 md:mb-0 w-full md:w-auto">
-                    <h1 class="text-xl md:text-3xl font-bold text-stone-800 serif leading-tight">Theology & Ink</h1>
-                    <p class="text-xs md:text-sm text-stone-500 italic">A Biblical Analysis of Tattoos</p>
-                </div>
-                
-                <!-- Scrollable Nav for Mobile -->
-                <nav class="w-full md:w-auto overflow-hidden">
-                    <ul class="flex space-x-2 bg-stone-100 p-1 rounded-lg text-sm overflow-x-auto no-scrollbar touch-pan-x whitespace-nowrap mask-image-linear">
-                        <li><button onclick="router('exegesis')" class="nav-btn px-3 py-2 md:px-4 rounded-md transition hover:bg-white text-stone-600 font-medium text-xs md:text-sm" id="nav-exegesis">Exegesis</button></li>
-                        <li><button onclick="router('theology')" class="nav-btn px-3 py-2 md:px-4 rounded-md transition hover:bg-white text-stone-600 font-medium text-xs md:text-sm" id="nav-theology">Theology</button></li>
-                        <li><button onclick="router('principles')" class="nav-btn px-3 py-2 md:px-4 rounded-md transition hover:bg-white text-stone-600 font-medium text-xs md:text-sm" id="nav-principles">Principles</button></li>
-                        <li><button onclick="router('perspectives')" class="nav-btn px-3 py-2 md:px-4 rounded-md transition hover:bg-white text-stone-600 font-medium text-xs md:text-sm" id="nav-perspectives">Perspectives</button></li>
-                        <li><button onclick="router('decision')" class="nav-btn px-3 py-2 md:px-4 rounded-md transition bg-amber-600 text-white shadow font-bold text-xs md:text-sm" id="nav-decision">Decision Tool</button></li>
-                    </ul>
-                </nav>
+    const element = document.createElement("a");
+    const file = new Blob([fullText], {type: 'text/plain'});
+    element.href = URL.createObjectURL(file);
+    element.download = "Marked_by_Grace_Full_Study.txt";
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+
+  const navTo = (id) => {
+    setActiveTab(id);
+    setIsMenuOpen(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const NavItem = ({ section }) => (
+    <button
+      onClick={() => navTo(section.id)}
+      className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
+        activeTab === section.id 
+          ? 'bg-amber-100 text-amber-900 font-bold shadow-sm scale-105' 
+          : 'text-slate-500 hover:text-amber-700 hover:bg-amber-50'
+      }`}
+    >
+      {section.icon}
+      <span className="text-sm tracking-wide uppercase font-semibold">{section.label}</span>
+    </button>
+  );
+
+  return (
+    <div className="min-h-screen bg-[#FDFCFB] text-slate-900 font-sans selection:bg-amber-200 antialiased">
+      {/* Navigation */}
+      <nav className={`fixed top-0 w-full z-50 transition-all duration-500 ${
+        scrolled ? 'bg-white/90 backdrop-blur-xl border-b border-slate-200 py-3' : 'bg-transparent py-6'
+      }`}>
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navTo('home')}>
+            <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white group-hover:bg-amber-600 transition-colors shadow-lg">
+              <PenTool className="w-5 h-5" />
             </div>
+            <div>
+              <span className="block font-black text-xl leading-none tracking-tight text-slate-800">Marked by Grace</span>
+              <span className="block text-[10px] uppercase tracking-[0.2em] font-bold text-amber-600 mt-1">Theological Inquiry</span>
+            </div>
+          </div>
+
+          {/* Desktop Nav */}
+          <div className="hidden lg:flex items-center gap-1 bg-white/50 p-1 rounded-full border border-slate-100 shadow-sm">
+            {sections.map(s => <NavItem key={s.id} section={s} />)}
+            <div className="w-px h-6 bg-slate-200 mx-2" />
+            <button 
+              onClick={() => navTo('download')}
+              className={`px-5 py-2 rounded-full flex items-center gap-2 transition-all duration-300 ${
+                activeTab === 'download' 
+                ? 'bg-amber-600 text-white shadow-lg shadow-amber-600/30' 
+                : 'bg-slate-900 text-white hover:bg-slate-800 shadow-md'
+              }`}
+            >
+              <Download className="w-4 h-4" />
+              <span className="text-sm font-bold">Paper</span>
+            </button>
+          </div>
+
+          {/* Mobile Menu Toggle */}
+          <button className="lg:hidden p-2 text-slate-600 bg-white shadow-sm border border-slate-100 rounded-xl" onClick={() => setIsMenuOpen(!isMenuOpen)}>
+            {isMenuOpen ? <X /> : <Menu />}
+          </button>
         </div>
-    </header>
 
-    <!-- Main Content -->
-    <main id="app" class="flex-grow max-w-4xl mx-auto px-4 py-6 w-full overflow-hidden">
-        <!-- Dynamic Content Injected Here -->
-    </main>
+        {/* Mobile Nav Menu */}
+        {isMenuOpen && (
+          <div className="lg:hidden absolute top-full left-0 w-full bg-white border-b border-slate-200 shadow-2xl animate-in slide-in-from-top duration-300">
+            <div className="flex flex-col p-6 gap-3">
+              {sections.map(s => (
+                <button
+                  key={s.id}
+                  onClick={() => navTo(s.id)}
+                  className={`flex items-center gap-4 p-4 rounded-2xl transition-all ${
+                    activeTab === s.id ? 'bg-amber-50 text-amber-800 font-bold' : 'hover:bg-slate-50'
+                  }`}
+                >
+                  <span className="p-2 bg-white rounded-lg shadow-sm">{s.icon}</span>
+                  {s.label}
+                </button>
+              ))}
+              <button 
+                onClick={() => navTo('download')}
+                className="w-full mt-4 bg-slate-900 text-white p-5 rounded-2xl flex items-center justify-center gap-2 font-bold shadow-lg"
+              >
+                <Download className="w-5 h-5" />
+                Access Full Report
+              </button>
+            </div>
+          </div>
+        )}
+      </nav>
 
-    <!-- Footer -->
-    <footer class="bg-stone-800 text-stone-400 py-8 mt-auto border-t border-stone-700">
-        <div class="max-w-5xl mx-auto px-4 text-center">
-            <p class="serif italic text-base md:text-lg mb-2">"So, whether you eat or drink, or whatever you do, do all to the glory of God."</p>
-            <p class="text-xs uppercase tracking-widest text-stone-500">1 Corinthians 10:31</p>
-            <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
-        </div>
-    </footer>
+      {/* Main Content */}
+      <main className="pt-32 pb-32 px-6 max-w-6xl mx-auto">
+        
+        {activeTab === 'home' && (
+          <div className="space-y-24 animate-in fade-in slide-in-from-bottom-8 duration-1000">
+            <section className="text-center py-12">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-amber-50 text-amber-700 font-bold text-xs uppercase tracking-[0.2em] mb-8 border border-amber-100 shadow-sm">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                Theology & Body Modification
+              </div>
+              <h1 className="text-6xl md:text-8xl font-black text-slate-900 leading-[0.95] tracking-tighter">
+                Taboo to <span className="text-amber-600 relative">
+                  Testament.
+                  <svg className="absolute -bottom-2 left-0 w-full h-3 text-amber-200" viewBox="0 0 100 10" preserveAspectRatio="none">
+                    <path d="M0 5 Q 25 0, 50 5 T 100 5" stroke="currentColor" strokeWidth="4" fill="transparent" />
+                  </svg>
+                </span>
+              </h1>
+              <p className="mt-12 text-xl md:text-2xl text-slate-500 max-w-2xl mx-auto leading-relaxed font-medium">
+                A deep dive into the Evangelical transformation regarding ink, identity, and the Imago Dei.
+              </p>
+              <div className="mt-14 flex flex-col sm:flex-row justify-center gap-4">
+                <button 
+                  onClick={() => navTo('history')}
+                  className="px-10 py-5 bg-slate-900 text-white rounded-2xl font-black text-lg hover:bg-slate-800 transition-all flex items-center justify-center gap-3 shadow-2xl shadow-slate-900/30 group"
+                >
+                  Explore Inquiry <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </button>
+                <button 
+                  onClick={() => navTo('download')}
+                  className="px-10 py-5 bg-white text-slate-900 border-2 border-slate-100 rounded-2xl font-black text-lg hover:border-amber-200 transition-all flex items-center justify-center gap-3 shadow-sm"
+                >
+                  <Download className="w-5 h-5" />
+                  Full Document
+                </button>
+              </div>
+            </section>
 
-    <!-- Templates & Scripts -->
-    <script>
-        // --- Data & Content ---
-        const reportData = {
-            exegesis: {
-                title: "1. Biblical Exegesis: Leviticus 19:28",
-                intro: "The primary text used in this debate is Leviticus 19:28. To understand it, we must strip away modern cultural lenses and look at the Ancient Near East context.",
-                scripture: "“You shall not make any <span class='interactive-text' onclick='showContext(\"cuts\")'>cuts on your body for the dead</span> or <span class='interactive-text' onclick='showContext(\"tattoo\")'>tattoo yourselves</span>: I am the LORD.”",
-                contexts: {
-                    cuts: {
-                        title: "Cuts for the Dead",
-                        content: "<strong>Context:</strong> Ritual self-mutilation (shaving heads, gashing skin) practiced by Canaanites to mourn the dead or appease underworld deities.<br><br><strong>Meaning:</strong> A prohibition against pagan death cults."
-                    },
-                    tattoo: {
-                        title: "Qa'aqa (Tattoo/Incision)",
-                        content: "<strong>Context:</strong> The Hebrew word <em>qa'aqa</em> implies branding. In the ancient world, this marked a person as a slave or a devotee belonging to a pagan god.<br><br><strong>Meaning:</strong> It was a command about <em>ownership</em>."
-                    }
-                }
-            },
-            principles: [
-                {
-                    icon: "🏛️",
-                    title: "Body as Temple",
-                    ref: "1 Cor 6:19-20",
-                    desc: "<strong>Against:</strong> Tattoos are graffiti on God's masterpiece.<br><strong>For:</strong> Temples are decorated. It is about stewardship."
+            <section className="grid md:grid-cols-3 gap-8">
+              {[
+                { 
+                  title: 'Ancient Roots', 
+                  icon: <History className="w-6 h-6" />, 
+                  desc: 'Unpacking the original intent of Leviticus 19:28 and the Canaanite rituals it opposed.',
+                  color: 'bg-amber-50 text-amber-600'
                 },
-                {
-                    icon: "⚖️",
-                    title: "Christian Liberty",
-                    ref: "Romans 14",
-                    desc: "<strong>Principle:</strong> In 'disputable matters', conscience rules. <br><strong>Caveat:</strong> 'Whatever does not proceed from faith is sin.'"
+                { 
+                  title: 'Modern Theology', 
+                  icon: <Layers className="w-6 h-6" />, 
+                  desc: 'How the New Covenant transforms our understanding of physical markers and holiness.',
+                  color: 'bg-blue-50 text-blue-600'
                 },
-                {
-                    icon: "🛑",
-                    title: "Stumbling Block",
-                    ref: "1 Cor 8:9",
-                    desc: "<strong>Principle:</strong> Liberty must not destroy another's faith.<br><strong>Application:</strong> Avoid if it signifies evil in your specific culture."
+                { 
+                  title: 'Redemptive Art', 
+                  icon: <Heart className="w-6 h-6" />, 
+                  desc: 'The rise of "testimony ink" as a powerful tool for healing and gospel outreach.',
+                  color: 'bg-rose-50 text-rose-600'
                 }
-            ],
-            quiz: [
-                { q: "Why do you want this tattoo?", type: "motive", options: ["Rebellion / Toughness", "Peer Pressure", "Art / Memorial / Faith"] },
-                { q: "Does the image glorify God?", type: "content", options: ["No (Dark/Sexual/Violent)", "Neutral", "Yes (Edifying/Truth)"] },
-                { q: "How is your conscience?", type: "conscience", options: ["Doubting / Hidden", "Unsure", "Clear / Peaceful"] },
-                { q: "Will it affect your witness?", type: "consequence", options: ["Likely Negative", "Depends", "Neutral / Positive"] },
-                { q: "Thinking 30 years ahead...", type: "permanence", options: ["I might regret it", "Maybe", "I accept the change"] }
-            ]
-        };
+              ].map((card, i) => (
+                <div key={i} className="group p-10 bg-white rounded-[2.5rem] shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100 hover:shadow-xl hover:border-amber-100 transition-all duration-500 hover:-translate-y-2">
+                  <div className={`w-14 h-14 ${card.color} rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-transform duration-500`}>
+                    {card.icon}
+                  </div>
+                  <h3 className="text-2xl font-black mb-4 text-slate-800 tracking-tight">{card.title}</h3>
+                  <p className="text-slate-500 leading-relaxed font-medium">{card.desc}</p>
+                  <div className="mt-8 pt-8 border-t border-slate-50 flex items-center text-amber-600 font-bold gap-2 text-sm opacity-0 group-hover:opacity-100 transition-opacity">
+                    Learn more <ChevronRight className="w-4 h-4" />
+                  </div>
+                </div>
+              ))}
+            </section>
+          </div>
+        )}
 
-        // --- State Management ---
-        let currentView = 'exegesis';
-        let charts = {};
+        {activeTab === 'history' && (
+          <div className="max-w-3xl mx-auto space-y-16 animate-in fade-in duration-700">
+            <header className="space-y-6">
+              <div className="text-amber-600 font-black text-xs uppercase tracking-widest">Part I: The Excavation</div>
+              <h2 className="text-5xl font-black text-slate-900 leading-tight tracking-tighter">The Levitical Prohibition</h2>
+              <blockquote className="border-l-4 border-amber-600 pl-8 py-2 text-2xl font-serif text-slate-700 italic leading-relaxed">
+                "You shall not make any cuts on your body for the dead or tattoo yourselves: I am the LORD."
+              </blockquote>
+            </header>
 
-        // --- Router ---
-        function router(view) {
-            currentView = view;
-            updateNav();
-            const app = document.getElementById('app');
-            app.innerHTML = ''; // Clear content
-            app.classList.remove('fade-in');
+            <div className="space-y-12">
+              <div className="bg-amber-600 text-white p-10 rounded-[2.5rem] shadow-2xl shadow-amber-600/20 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16"></div>
+                <h4 className="text-sm font-bold uppercase tracking-widest opacity-80 mb-4 flex items-center gap-2">
+                   <BookOpen className="w-4 h-4" /> Key Finding: Philological Roots
+                </h4>
+                <p className="text-2xl font-medium leading-snug">
+                  The Hebrew phrase <span className="italic font-bold">ketovet ka’aka</span> refers to a specific process of cutting and filling with pigment, but its context is crucial: it was linked to <span className="text-amber-200 underline decoration-amber-400">necromantic rituals</span>—mourning for the dead.
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <h3 className="text-2xl font-bold text-slate-800">The Slave Mark</h3>
+                  <p className="text-slate-600 leading-relaxed">Tattoos were the ancient equivalent of a cattle brand. By bearing the name or symbol of a master, the slave was legally identified as property. Israel was unique: they belonged to Yahweh, but he demanded a <span className="font-bold">circumcised heart</span>, not scarred skin.</p>
+                </div>
+                <div className="space-y-4">
+                  <h3 className="text-2xl font-bold text-slate-800">Sympathetic Magic</h3>
+                  <p className="text-slate-600 leading-relaxed">Tattoos were often used as amulets for protection or fertility. Leviticus 19 asserts that security comes from obedience to the Lord, not from <span className="font-bold text-amber-600 italic">ink-based magic</span>.</p>
+                </div>
+              </div>
+
+              <div className="p-8 bg-slate-50 rounded-3xl border border-slate-200">
+                <h4 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  <ExternalLink className="w-4 h-4 text-slate-400" /> Rabbinic Debate
+                </h4>
+                <p className="text-sm text-slate-500 leading-relaxed">
+                  In the Mishnah (Makkot 3:6), sages debated whether the sin lay in the content (idolatrous names) or the act itself. Maimonides later codified it as a bulwark against emulating the Amorites. Today, within Judaism, the Holocaust has added a layer of historical trauma to the unblemished body.
+                </p>
+              </div>
+            </div>
             
-            // Scroll to top of content area on mobile when switching
-            if(window.innerWidth < 768) {
-                window.scrollTo({top: 0, behavior: 'smooth'});
-            }
+            <div className="pt-12 border-t border-slate-100">
+              <button onClick={() => navTo('theology')} className="bg-amber-50 text-amber-600 px-8 py-4 rounded-2xl font-black flex items-center gap-3 hover:bg-amber-100 transition-all ml-auto group">
+                Continue to Theology <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+          </div>
+        )}
 
-            // Small timeout to allow transition reset
-            setTimeout(() => {
-                app.classList.add('fade-in');
-                switch(view) {
-                    case 'exegesis': renderExegesis(); break;
-                    case 'theology': renderTheology(); break;
-                    case 'principles': renderPrinciples(); break;
-                    case 'perspectives': renderPerspectives(); break;
-                    case 'decision': renderDecision(); break;
+        {activeTab === 'theology' && (
+          <div className="max-w-3xl mx-auto space-y-16 animate-in fade-in duration-700">
+            <header className="space-y-6">
+              <div className="text-blue-600 font-black text-xs uppercase tracking-widest">Part II: The Transition</div>
+              <h2 className="text-5xl font-black text-slate-900 leading-tight tracking-tighter">Covenants & Laws</h2>
+              <p className="text-xl text-slate-500 font-medium">Navigating the shift from the Old Covenant boundary markers to the New Covenant life of the Spirit.</p>
+            </header>
+
+            <div className="bg-white p-10 rounded-[3rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100">
+              <h3 className="text-3xl font-black mb-10 text-slate-800 tracking-tight">The Tripartite Division</h3>
+              <div className="space-y-8">
+                {[
+                  { title: 'Ceremonial Law', tag: 'Shadow', color: 'blue', desc: 'Governed rituals and purity. Most Evangelical scholars place the tattoo ban here—as an external distinction now fulfilled in Christ.' },
+                  { title: 'Civil Law', tag: 'Expired', color: 'green', desc: 'Governed the theocratic state of Israel. Contains principles of equity but is no longer binding as legal code.' },
+                  { title: 'Moral Law', tag: 'Binding', color: 'rose', desc: 'Reflects the unchanging character of God. Some argue tattoos violate the Imago Dei, classifying it here.' }
+                ].map((item, i) => (
+                  <div key={i} className="flex gap-6 items-start group">
+                    <div className={`w-12 h-12 shrink-0 bg-${item.color}-50 text-${item.color}-600 rounded-2xl flex items-center justify-center font-black text-xl shadow-sm group-hover:scale-110 transition-transform`}>
+                      {item.title[0]}
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-3 mb-2">
+                        <h4 className="text-xl font-bold text-slate-800">{item.title}</h4>
+                        <span className={`text-[10px] uppercase tracking-widest font-black px-2 py-0.5 bg-${item.color}-100 text-${item.color}-700 rounded-md`}>{item.tag}</span>
+                      </div>
+                      <p className="text-slate-500 leading-relaxed">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-8">
+              <h3 className="text-3xl font-black text-slate-800 tracking-tight">Body as Temple</h3>
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="p-8 bg-slate-50 rounded-3xl border border-slate-200 relative">
+                   <div className="absolute -top-3 -right-3 px-3 py-1 bg-slate-200 text-slate-600 rounded-lg text-[10px] font-black uppercase tracking-widest">Traditional</div>
+                  <h4 className="text-lg font-bold mb-4">"Graffiti on the Temple"</h4>
+                  <p className="text-sm text-slate-600 leading-relaxed italic">The body is God's workmanship. To alter it permanently is an act of vandalism against the Creator's design. Stewardship requires preserving the vessel.</p>
+                </div>
+                <div className="p-8 bg-amber-50 rounded-3xl border border-amber-200 relative">
+                   <div className="absolute -top-3 -right-3 px-3 py-1 bg-amber-200 text-amber-700 rounded-lg text-[10px] font-black uppercase tracking-widest">Missional</div>
+                  <h4 className="text-lg font-bold mb-4 text-amber-900">"Stained Glass"</h4>
+                  <p className="text-sm text-amber-800 leading-relaxed italic">Temples are places of beauty and testimony. If the art points to Christ, it glorifies the inhabitant. Adornment is not defilement.</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-12 border-t border-slate-100">
+              <button onClick={() => navTo('modern')} className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-black flex items-center gap-3 hover:bg-slate-800 transition-all ml-auto group shadow-xl shadow-slate-900/20">
+                Next: Modern Views <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'modern' && (
+          <div className="max-w-4xl mx-auto space-y-20 animate-in fade-in duration-700">
+            <header className="text-center space-y-6">
+              <div className="text-rose-600 font-black text-xs uppercase tracking-widest">Part III: The Spectrum</div>
+              <h2 className="text-5xl font-black text-slate-900 leading-tight tracking-tighter">Evangelical Perspectives</h2>
+              <p className="text-xl text-slate-500 font-medium max-w-2xl mx-auto">From cautious discouragement to enthusiastic missional use, the church's view is anything but binary.</p>
+            </header>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              {[
+                { 
+                  type: 'Restrictionist', 
+                  quote: '"Holiness = Separation"', 
+                  color: 'rose', 
+                  leaders: 'John MacArthur', 
+                  desc: 'Views body modification as a drift back toward paganism and a symptom of a culture obsessed with self-expression over God-expression.' 
+                },
+                { 
+                  type: 'Cautionary', 
+                  quote: '"Is it Wise?"', 
+                  color: 'amber', 
+                  leaders: 'John Piper', 
+                  desc: 'Acknowledges no explicit ban but asks believers to interrogate the "spirit of the age" and temporary vanity vs. eternal values.' 
+                },
+                { 
+                  type: 'Liberty', 
+                  quote: '"Matter of Conscience"', 
+                  color: 'blue', 
+                  leaders: 'Matt Chandler, Sam Storms', 
+                  desc: 'Regards the issue as biblically "Adiaphora" (indifferent). Liberty is only limited by the "weaker brother" dynamic of love.' 
+                },
+                { 
+                  type: 'Missional', 
+                  quote: '"Redemptive Bridge"', 
+                  color: 'emerald', 
+                  leaders: 'Levi Lusko', 
+                  desc: 'Views tattoos as a neutral medium that can be redeemed for the Gospel—creating conversational tracts on the skin.' 
                 }
-            }, 50);
-        }
+              ].map((view, i) => (
+                <div key={i} className="group p-10 bg-white border border-slate-100 rounded-[2.5rem] shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-500">
+                  <div className={`inline-block px-3 py-1 bg-${view.color}-50 text-${view.color}-700 rounded-lg text-[10px] font-black uppercase tracking-widest mb-6`}>
+                    {view.type}
+                  </div>
+                  <div className="text-3xl font-serif text-slate-400 mb-6 italic leading-tight">{view.quote}</div>
+                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Key Proponents</h4>
+                  <p className="text-lg font-bold text-slate-800 mb-4">{view.leaders}</p>
+                  <p className="text-slate-500 leading-relaxed font-medium">{view.desc}</p>
+                </div>
+              ))}
+            </div>
 
-        function updateNav() {
-            document.querySelectorAll('.nav-btn').forEach(btn => {
-                const isActive = btn.id === `nav-${currentView}`;
-                const baseClasses = "nav-btn px-3 py-2 md:px-4 rounded-md transition text-xs md:text-sm font-medium whitespace-nowrap";
+            <div className="bg-slate-900 text-white p-16 rounded-[3rem] shadow-2xl relative overflow-hidden">
+               <div className="absolute top-0 right-0 w-96 h-96 bg-amber-600/20 blur-[100px] -mr-48 -mt-48 rounded-full"></div>
+               <div className="relative z-10">
+                <h3 className="text-3xl font-black mb-8 tracking-tight">The "Redemptive" Tattoo</h3>
+                <div className="grid md:grid-cols-3 gap-8">
+                  <div className="space-y-3">
+                    <h4 className="text-amber-500 font-bold flex items-center gap-2">
+                       <CheckCircle className="w-4 h-4" /> Restoration
+                    </h4>
+                    <p className="text-sm text-slate-300">Using ink to restore dignity to the Imago Dei (e.g., medical tattooing after disease).</p>
+                  </div>
+                  <div className="space-y-3">
+                    <h4 className="text-amber-500 font-bold flex items-center gap-2">
+                       <CheckCircle className="w-4 h-4" /> Ebenezer
+                    </h4>
+                    <p className="text-sm text-slate-300">Permanent memorials of God's deliverance (e.g., suicide awareness semicolons).</p>
+                  </div>
+                  <div className="space-y-3">
+                    <h4 className="text-amber-500 font-bold flex items-center gap-2">
+                       <CheckCircle className="w-4 h-4" /> Testimony
+                    </h4>
+                    <p className="text-sm text-slate-300">Turning "sinful" past history into stories of grace through cover-ups.</p>
+                  </div>
+                </div>
+               </div>
+            </div>
+            
+            <div className="pt-12 border-t border-slate-100 flex justify-center">
+              <button onClick={() => navTo('guide')} className="text-amber-600 font-black text-lg flex items-center gap-3 group hover:underline">
+                View Decision Matrix <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'guide' && (
+          <div className="max-w-3xl mx-auto space-y-16 animate-in fade-in duration-700">
+            <header className="text-center space-y-6">
+              <div className="text-emerald-600 font-black text-xs uppercase tracking-widest">Part IV: The Application</div>
+              <h2 className="text-5xl font-black text-slate-900 leading-tight tracking-tighter">The Filter of Wisdom</h2>
+              <p className="text-xl text-slate-500 font-medium">Four dimensional criteria for the believer's conscience.</p>
+            </header>
+
+            <div className="grid gap-8">
+              {[
+                { 
+                  title: 'Filter of Motivation', 
+                  tag: 'The WHY', 
+                  desc: 'Is this rooted in rebellion, vanity, or worship? Does it memorialize God’s faithfulness or seek identity in a subculture?',
+                  icon: <Heart className="w-6 h-6 text-rose-500" />,
+                  color: 'rose'
+                },
+                { 
+                  title: 'Filter of Content', 
+                  tag: 'The WHAT', 
+                  desc: 'Does the image pass the Philippians 4:8 test? Is it honorable and pure, or does it flirt with prohibited imagery?',
+                  icon: <PenTool className="w-6 h-6 text-amber-500" />,
+                  color: 'amber'
+                },
+                { 
+                  title: 'Filter of Conscience', 
+                  tag: 'The WHO', 
+                  desc: 'Can you get it with full thanksgiving? Acting against even a sensitive conscience is sin (Romans 14).',
+                  icon: <ShieldCheck className="w-6 h-6 text-emerald-500" />,
+                  color: 'emerald'
+                },
+                { 
+                  title: 'Filter of Missiology', 
+                  tag: 'The WHERE', 
+                  desc: 'Will this mark hinder or help the gospel in your specific cultural or vocational calling?',
+                  icon: <MapPin className="w-6 h-6 text-blue-500" />,
+                  color: 'blue'
+                },
+              ].map((item, i) => (
+                <div key={i} className="flex flex-col sm:flex-row gap-8 p-10 bg-white border border-slate-100 rounded-[2.5rem] shadow-sm hover:shadow-md transition-shadow">
+                  <div className={`w-16 h-16 shrink-0 bg-${item.color}-50 rounded-2xl flex items-center justify-center`}>
+                    {item.icon}
+                  </div>
+                  <div>
+                    <div className={`text-[10px] font-black text-${item.color}-600 uppercase tracking-[0.2em] mb-2`}>{item.tag}</div>
+                    <h3 className="text-2xl font-black text-slate-800 mb-4 tracking-tight">{item.title}</h3>
+                    <p className="text-slate-500 leading-relaxed font-medium">{item.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-20 py-20 px-10 bg-white border-4 border-amber-50 rounded-[4rem] text-center shadow-sm relative overflow-hidden">
+               <div className="text-5xl font-serif text-slate-200 absolute top-4 left-1/2 -translate-x-1/2 select-none">"</div>
+               <h3 className="text-3xl font-black mb-8 italic text-slate-800 tracking-tight leading-tight">Closing Thesis</h3>
+               <p className="text-2xl text-slate-500 max-w-2xl mx-auto leading-relaxed font-medium mb-12">
+                 The research indicates that the Bible does not provide a universal, timeless ban on tattoos for the New Covenant believer. Instead, it invites us to a higher standard: 
+                 <span className="text-slate-900 block mt-4 font-bold">"Whatever you do, do all to the glory of God."</span>
+               </p>
+               <button 
+                onClick={() => navTo('download')}
+                className="bg-amber-600 text-white px-10 py-5 rounded-2xl font-black text-lg hover:bg-amber-700 transition-all shadow-xl shadow-amber-600/30 active:scale-95"
+              >
+                Download Full Paper
+               </button>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'download' && (
+          <div className="max-w-4xl mx-auto animate-in fade-in duration-700">
+            <div className="text-center py-24 bg-slate-900 text-white rounded-[4rem] px-8 shadow-2xl relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-amber-600/10 blur-[150px] -mr-[20rem] -mt-[20rem] rounded-full"></div>
+              <div className="relative z-10 space-y-8">
+                <div className="w-24 h-24 bg-gradient-to-br from-amber-400 to-amber-600 rounded-[2rem] flex items-center justify-center mx-auto mb-10 rotate-6 shadow-2xl shadow-amber-600/20">
+                  <Download className="w-12 h-12" />
+                </div>
+                <h2 className="text-5xl font-black tracking-tighter">Complete Your Study</h2>
+                <p className="text-slate-400 text-xl mb-12 max-w-lg mx-auto leading-relaxed">
+                  Access the full research document with complete exegetical notes, Near Eastern archaeology data, and works cited.
+                </p>
                 
-                if (btn.id === 'nav-decision') {
-                    btn.className = `${baseClasses} font-bold shadow ${isActive ? 'bg-amber-800 text-white ring-2 ring-amber-300' : 'bg-amber-600 text-white hover:bg-amber-700'}`;
-                } else {
-                    btn.className = `${baseClasses} ${isActive ? 'bg-white shadow-sm text-stone-900 ring-1 ring-stone-200' : 'text-stone-600 hover:bg-white hover:shadow-sm'}`;
-                }
-            });
-        }
-
-        // --- Render Functions ---
-
-        function renderExegesis() {
-            const data = reportData.exegesis;
-            const html = `
-                <section class="space-y-6">
-                    <div class="border-l-4 border-stone-800 pl-4 md:pl-6 py-1 md:py-2">
-                        <h2 class="text-2xl md:text-3xl font-bold text-stone-800 serif mb-2">${data.title}</h2>
-                        <p class="text-sm md:text-base text-stone-600 leading-relaxed">${data.intro}</p>
-                    </div>
-
-                    <div class="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-stone-200 text-center my-4 md:my-8">
-                        <p class="text-xl md:text-3xl serif text-stone-800 leading-loose">
-                            ${data.scripture}
-                        </p>
-                        <p class="text-xs text-stone-400 mt-4 uppercase tracking-widest font-bold">Tap highlighted text to analyze</p>
-                    </div>
-
-                    <div id="exegesis-context" class="hidden bg-amber-50 border border-amber-200 p-4 md:p-6 rounded-lg text-stone-800 transition-all animate-fade-in shadow-inner">
-                        <!-- Dynamic Context Loads Here -->
-                    </div>
-                </section>
-            `;
-            document.getElementById('app').innerHTML = html;
-        }
-
-        function showContext(key) {
-            const ctx = reportData.exegesis.contexts[key];
-            const display = document.getElementById('exegesis-context');
-            display.innerHTML = `
-                <h3 class="text-lg md:text-xl font-bold text-amber-800 mb-2 serif flex items-center">
-                    <span class="text-2xl mr-2">💡</span> ${ctx.title}
-                </h3>
-                <p class="text-sm md:text-base text-stone-700 leading-relaxed">${ctx.content}</p>
-                <button onclick="this.parentElement.classList.add('hidden')" class="mt-4 text-xs text-amber-600 uppercase font-bold tracking-wider md:hidden">Close</button>
-            `;
-            display.classList.remove('hidden');
-            // Scroll to context on mobile if it's off screen
-            if(window.innerWidth < 768) {
-                display.scrollIntoView({behavior: 'smooth', block: 'nearest'});
-            }
-        }
-
-        function renderTheology() {
-            const html = `
-                <section class="space-y-6">
-                    <div class="border-l-4 border-stone-800 pl-4 md:pl-6 py-1 md:py-2">
-                        <h2 class="text-2xl md:text-3xl font-bold text-stone-800 serif mb-2">2. Theological Framework</h2>
-                        <p class="text-sm md:text-base text-stone-600 leading-relaxed">
-                            How do we apply ancient law? Theologians categorize Mosaic Law into three types. 
-                            While Moral Law is eternal, Ceremonial Law is considered "fulfilled" in Christ.
-                        </p>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-center mt-4 md:mt-8">
-                        <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-stone-200">
-                            <h3 class="text-center font-bold text-stone-500 mb-4 uppercase tracking-widest text-xs">Categories of Biblical Law</h3>
-                            <div class="chart-container">
-                                <canvas id="theologyChart"></canvas>
-                            </div>
-                        </div>
-                        <div class="space-y-3 md:space-y-4">
-                            <div class="p-3 md:p-4 bg-stone-100 rounded border-l-4 border-stone-500">
-                                <h4 class="font-bold text-stone-800 text-sm md:text-base">Moral Law</h4>
-                                <p class="text-xs md:text-sm text-stone-600">Reflects God's character (e.g., 10 Commandments). <br><strong>Status:</strong> Binding.</p>
-                            </div>
-                            <div class="p-3 md:p-4 bg-amber-50 rounded border-l-4 border-amber-500">
-                                <h4 class="font-bold text-amber-900 text-sm md:text-base">Ceremonial Law</h4>
-                                <p class="text-xs md:text-sm text-amber-800">Rituals, diet, and distinction (e.g., Tattoos, Lev 19:28). <br><strong>Status:</strong> Fulfilled/Abrogated.</p>
-                            </div>
-                            <div class="p-3 md:p-4 bg-stone-100 rounded border-l-4 border-stone-300">
-                                <h4 class="font-bold text-stone-600 text-sm md:text-base">Civil Law</h4>
-                                <p class="text-xs md:text-sm text-stone-500">Governed Israel as a nation. <br><strong>Status:</strong> Principles apply, rules do not.</p>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            `;
-            document.getElementById('app').innerHTML = html;
-
-            const ctx = document.getElementById('theologyChart').getContext('2d');
-            charts.theology = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Moral Law', 'Ceremonial (Lev 19:28)', 'Civil Law'],
-                    datasets: [{
-                        data: [30, 40, 30],
-                        backgroundColor: ['#57534e', '#d97706', '#d6d3d1'],
-                        borderWidth: 2,
-                        borderColor: '#ffffff'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { boxWidth: 12, padding: 15, font: {size: 11} } },
-                        tooltip: {
-                            callbacks: { label: function(context) { return ' ' + context.label; } }
-                        }
-                    }
-                }
-            });
-        }
-
-        function renderPrinciples() {
-            const cards = reportData.principles.map(p => `
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-stone-200 hover:shadow-md transition">
-                    <div class="flex items-center mb-3">
-                        <div class="text-3xl mr-3">${p.icon}</div>
-                        <div>
-                            <h3 class="text-lg font-bold text-stone-800 serif leading-none">${p.title}</h3>
-                            <p class="text-xs font-bold text-amber-600 uppercase mt-1">${p.ref}</p>
-                        </div>
-                    </div>
-                    <p class="text-sm text-stone-600 leading-relaxed border-t border-stone-100 pt-3">${p.desc}</p>
+                <div className="flex flex-col sm:flex-row gap-6 justify-center pt-6">
+                  <button 
+                    onClick={handleDownload}
+                    className="bg-white text-slate-900 px-10 py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 hover:bg-amber-50 transition-colors shadow-xl"
+                  >
+                    <Download className="w-5 h-5" />
+                    Download PDF Study
+                  </button>
+                  <button 
+                    onClick={() => setShowFullText(!showFullText)}
+                    className="bg-white/5 text-white border border-white/20 px-10 py-5 rounded-2xl font-black text-lg flex items-center justify-center gap-3 hover:bg-white/10 transition-colors backdrop-blur-md"
+                  >
+                    <BookOpen className="w-5 h-5" />
+                    {showFullText ? "Minimize Text" : "Read Online"}
+                  </button>
                 </div>
-            `).join('');
+              </div>
+            </div>
 
-            const html = `
-                <section class="space-y-6">
-                    <div class="border-l-4 border-stone-800 pl-4 md:pl-6 py-1 md:py-2">
-                        <h2 class="text-2xl md:text-3xl font-bold text-stone-800 serif mb-2">3. New Testament Principles</h2>
-                        <p class="text-sm md:text-base text-stone-600 leading-relaxed">
-                            The New Testament does not explicitly ban tattoos. Instead, it gives us ethical principles to govern "disputable matters."
-                        </p>
+            {showFullText && (
+              <div className="mt-12 bg-white p-16 rounded-[3rem] border border-slate-200 shadow-sm animate-in slide-in-from-top-8 duration-500">
+                <article className="prose prose-slate prose-xl max-w-none">
+                  <div className="text-amber-600 font-black text-xs uppercase tracking-[0.3em] mb-4">Official Research Document</div>
+                  <h1 className="text-5xl font-black tracking-tighter mb-12">Marked by Grace: A Comprehensive Theological Inquiry</h1>
+                  
+                  <section className="space-y-8">
+                    <h2 className="text-3xl font-black">Introduction: The Shift from Taboo to Testament</h2>
+                    <p className="leading-relaxed">In the span of a single generation, the visual landscape of the Evangelical church has undergone a radical transformation. Where once the unblemished skin was a hallmark of conservative piety—a silent testimony to separation from the "world"—today, it is commonplace to see worship leaders, youth pastors, and congregants bearing permanent ink...</p>
+                    
+                    <h3 className="text-2xl font-bold">Part I: The Levitical Prohibition</h3>
+                    <p>Leviticus 19:28 stands as the solitary explicit biblical prohibition against tattooing. To understand its application today, we must first understand its original intent, untangling the philological roots and the socio-religious context of the Ancient Near East (ANE). The phrase <em>ketovet ka’aka</em> is unique in the Hebrew Bible, presenting challenges for translation and interpretation...</p>
+                    
+                    <div className="p-12 bg-slate-50 rounded-[2rem] text-center border-2 border-dashed border-slate-200">
+                      <p className="font-bold text-slate-400 mb-0 italic">This is an excerpt of the 40-page study. Use the download button above to save the full document for offline study.</p>
                     </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mt-4 md:mt-6">
-                        ${cards}
-                    </div>
-                </section>
-            `;
-            document.getElementById('app').innerHTML = html;
-        }
+                  </section>
+                </article>
+              </div>
+            )}
+          </div>
+        )}
 
-        function renderPerspectives() {
-             const html = `
-                <section class="space-y-6">
-                    <div class="border-l-4 border-stone-800 pl-4 md:pl-6 py-1 md:py-2">
-                        <h2 class="text-2xl md:text-3xl font-bold text-stone-800 serif mb-2">4. Modern Perspectives</h2>
-                        <p class="text-sm md:text-base text-stone-600 leading-relaxed">
-                            Evangelical leaders are divided. The "Caution" camp emphasizes stewardship, while the "Liberty" camp emphasizes mission.
-                        </p>
-                    </div>
+      </main>
 
-                    <div class="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-stone-200 mt-4 md:mt-8">
-                        <div class="chart-container">
-                            <canvas id="perspectivesChart"></canvas>
-                        </div>
-                        <div class="mt-4 md:mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 text-xs md:text-sm text-center">
-                            <div class="p-2 bg-stone-50 rounded text-stone-600 border border-stone-100"><span class="inline-block w-2 h-2 rounded-full bg-stone-500 mr-2"></span><strong>Caution Camp:</strong> Focus on Modesty & Tradition.</div>
-                            <div class="p-2 bg-amber-50 rounded text-amber-800 border border-amber-100"><span class="inline-block w-2 h-2 rounded-full bg-amber-500 mr-2"></span><strong>Liberty Camp:</strong> Focus on Mission & Relevance.</div>
-                        </div>
-                    </div>
-                </section>
-            `;
-            document.getElementById('app').innerHTML = html;
+      {/* Footer */}
+      <footer className="bg-white border-t border-slate-100 py-20 px-6">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12">
+          <div className="max-w-xs space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-slate-900 rounded-xl flex items-center justify-center text-white">
+                <PenTool className="w-5 h-5" />
+              </div>
+              <span className="font-black text-xl tracking-tight text-slate-800">Marked by Grace</span>
+            </div>
+            <p className="text-slate-400 text-sm leading-relaxed">
+              An independent theological project distilling complex biblical inquiries into accessible modern formats.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-12">
+            <div className="space-y-4">
+              <h5 className="font-black text-[10px] uppercase tracking-widest text-slate-400">Sections</h5>
+              <ul className="space-y-2 text-sm font-bold text-slate-600">
+                <li className="cursor-pointer hover:text-amber-600 transition-colors" onClick={() => navTo('home')}>Home</li>
+                <li className="cursor-pointer hover:text-amber-600 transition-colors" onClick={() => navTo('history')}>History</li>
+                <li className="cursor-pointer hover:text-amber-600 transition-colors" onClick={() => navTo('theology')}>Theology</li>
+              </ul>
+            </div>
+            <div className="space-y-4">
+              <h5 className="font-black text-[10px] uppercase tracking-widest text-slate-400">Resources</h5>
+              <ul className="space-y-2 text-sm font-bold text-slate-600">
+                <li className="cursor-pointer hover:text-amber-600 transition-colors" onClick={() => navTo('download')}>Full Paper</li>
+                <li className="cursor-pointer hover:text-amber-600 transition-colors" onClick={() => navTo('guide')}>Decision Guide</li>
+              </ul>
+            </div>
+            <div className="space-y-4 col-span-2 sm:col-span-1">
+              <h5 className="font-black text-[10px] uppercase tracking-widest text-slate-400">Project Info</h5>
+              <p className="text-xs text-slate-400 leading-relaxed font-medium">
+                Distilled from "Marked by Grace: A Comprehensive Theological Inquiry". © 2025.
+              </p>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
 
-            const ctx = document.getElementById('perspectivesChart').getContext('2d');
-            charts.perspectives = new Chart(ctx, {
-                type: 'radar',
-                data: {
-                    labels: ['Stewardship', 'Cultural Relevance', 'Christian Liberty', 'Tradition', 'Missional Intent'],
-                    datasets: [
-                        {
-                            label: 'Caution View',
-                            data: [90, 20, 40, 95, 30],
-                            backgroundColor: 'rgba(87, 83, 78, 0.2)', // stone-600
-                            borderColor: '#57534e',
-                            pointBackgroundColor: '#57534e',
-                            borderWidth: 2
-                        },
-                        {
-                            label: 'Liberty View',
-                            data: [50, 90, 95, 20, 90],
-                            backgroundColor: 'rgba(217, 119, 6, 0.2)', // amber-600
-                            borderColor: '#d97706',
-                            pointBackgroundColor: '#d97706',
-                            borderWidth: 2
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        r: {
-                            angleLines: { color: '#e7e5e4' },
-                            grid: { color: '#e7e5e4' },
-                            pointLabels: {
-                                font: { size: 10, family: 'Lato' }, // Smaller font for mobile
-                                color: '#44403c'
-                            },
-                            ticks: { display: false } // Hide chart ticks for cleaner mobile view
-                        }
-                    },
-                    plugins: {
-                        legend: { position: 'bottom', labels: { boxWidth: 10, padding: 10, font: {size: 11} } }
-                    }
-                }
-            });
-        }
-
-        function renderDecision() {
-            let html = `
-                <section class="space-y-6">
-                    <div class="border-l-4 border-amber-600 pl-4 md:pl-6 py-1 md:py-2">
-                        <h2 class="text-2xl md:text-3xl font-bold text-stone-800 serif mb-2">5. Decision Framework</h2>
-                        <p class="text-sm md:text-base text-stone-600 leading-relaxed">
-                            The decision often comes down to the heart. Use this interactive framework to examine your motives.
-                        </p>
-                    </div>
-                    <div class="bg-white rounded-xl shadow-lg border border-stone-200 overflow-hidden max-w-2xl mx-auto mt-4 md:mt-8">
-                        <div class="bg-stone-800 p-3 md:p-4 text-white font-bold text-center uppercase tracking-widest text-sm md:text-base">Examination Tool</div>
-                        <div class="p-4 md:p-8" id="quiz-container">
-            `;
-
-            reportData.quiz.forEach((q, idx) => {
-                html += `
-                    <div class="mb-6 pb-6 border-b border-stone-100 last:border-0 last:pb-0">
-                        <p class="font-bold text-base md:text-lg text-stone-800 mb-3 serif"><span class="text-amber-600 mr-2">${idx + 1}.</span> ${q.q}</p>
-                        <div class="flex flex-col space-y-2">
-                            ${q.options.map((opt, optIdx) => `
-                                <label class="flex items-center p-3 rounded-lg bg-stone-50 active:bg-amber-50 cursor-pointer border border-transparent hover:border-stone-200 transition touch-manipulation">
-                                    <input type="radio" name="q${idx}" value="${optIdx}" class="form-radio text-amber-600 focus:ring-amber-500 h-5 w-5 flex-shrink-0">
-                                    <span class="ml-3 text-sm md:text-base text-stone-700">${opt}</span>
-                                </label>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            });
-
-            html += `
-                        <button onclick="calculateResult()" class="w-full bg-amber-600 text-white font-bold py-3 md:py-4 rounded shadow hover:bg-amber-700 transition transform active:scale-95 text-sm md:text-base">Analyze Responses</button>
-                    </div>
-                    <div id="quiz-result" class="hidden p-6 md:p-8 bg-amber-50 border-t border-amber-100 text-center animate-fade-in"></div>
-                </div>
-            </section>`;
-            
-            document.getElementById('app').innerHTML = html;
-        }
-
-        function calculateResult() {
-            let score = 0;
-            let answered = 0;
-            
-            reportData.quiz.forEach((_, idx) => {
-                const radios = document.getElementsByName(`q${idx}`);
-                for(let r of radios) {
-                    if(r.checked) {
-                        score += parseInt(r.value);
-                        answered++;
-                    }
-                }
-            });
-
-            if(answered < 5) {
-                // Use standard alert but maybe custom modal is better? 
-                // For simplicity/robustness in single file, alert is okay, 
-                // but let's just show a warning text instead.
-                const btn = document.querySelector('#quiz-container button');
-                const originalText = btn.innerText;
-                btn.innerText = "Please answer all questions first!";
-                btn.classList.add('bg-red-600');
-                setTimeout(() => {
-                    btn.innerText = originalText;
-                    btn.classList.remove('bg-red-600');
-                }, 2000);
-                return;
-            }
-
-            const resultDiv = document.getElementById('quiz-result');
-            let resultTitle = "";
-            let resultText = "";
-            let resultColor = "";
-
-            if (score <= 3) {
-                resultTitle = "Pause & Pray";
-                resultText = "Your answers suggest significant red flags regarding motive, content, or conscience. It is wise to wait.";
-                resultColor = "text-red-700";
-            } else if (score <= 7) {
-                resultTitle = "Proceed with Caution";
-                resultText = "You have some clarity, but there may be lingering doubts. Seek wise counsel from a pastor or mentor.";
-                resultColor = "text-amber-700";
-            } else {
-                resultTitle = "Christian Liberty";
-                resultText = "Your conscience seems clear, and your motives appear to be for God's glory. Remember to consider others.";
-                resultColor = "text-green-700";
-            }
-
-            resultDiv.innerHTML = `
-                <h3 class="text-xl md:text-2xl font-bold ${resultColor} mb-2 serif">${resultTitle}</h3>
-                <p class="text-sm md:text-base text-stone-700 leading-relaxed">${resultText}</p>
-                <button onclick="router('exegesis')" class="mt-4 text-xs md:text-sm text-stone-500 underline hover:text-stone-800 p-2">Return to Start</button>
-            `;
-            resultDiv.classList.remove('hidden');
-            resultDiv.scrollIntoView({behavior: 'smooth'});
-        }
-
-        // Initialize
-        router('exegesis');
-
-    </script>
-</body>
-</html>
+export default App;
